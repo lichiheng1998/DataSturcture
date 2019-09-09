@@ -16,4 +16,4 @@ class Vertex:
 
     def __str__(self):
         par = "None" if self.parent is None else str(self.parent.label)
-        return "d: " + str(self.d) + ", f: " + str(self.f) + ", parent: " + par
+        return "label: " + str(self.label) + ", d: " + str(self.d) + ", f: " + str(self.f) + ", parent: " + par
