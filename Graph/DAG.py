@@ -1,6 +1,6 @@
 from Graph.vertex import Vertex
 from Graph import _WHITE, _GREY, _BLACK
-from typing import List
+from typing import List, Set
 import copy
 
 class DirectedAcyclicGraph:
@@ -16,6 +16,7 @@ class DirectedAcyclicGraph:
 
         # variables exist for algorithm
         self._clock = 0
+        self.isCyclic = None
 
     def add_edge(self, u, v):
         # add edges
@@ -43,8 +44,21 @@ class DirectedAcyclicGraph:
             graph += "]\n"
         return graph
 
-def DFS_Explore(ordered_vertices: List[Vertex], graph: DirectedAcyclicGraph, u) -> None:
+def DFS_Explore(
+        ordered_vertices: List[Vertex],
+        graph: DirectedAcyclicGraph,
+        prev, u
+    ) -> None:
     vertex_u = graph._vertices[u]
+    # If the vertex explored is in the process of being explored, then there is
+    # a cycle in the graph.
+    if vertex_u.color == _GREY:
+        graph.isCyclic = True
+        return
+    elif vertex_u.color == _BLACK:
+        return
+    # set the parent vertex
+    vertex_u.parent = None if prev is None else graph._vertices[prev]
     # color the edge to grey
     vertex_u.color = _GREY
     # increment the time
@@ -52,9 +66,7 @@ def DFS_Explore(ordered_vertices: List[Vertex], graph: DirectedAcyclicGraph, u) 
     vertex_u.d = graph._clock
     if u in graph._graph:
         for v in graph._graph[u]:
-            if graph._vertices[v].color == _WHITE:
-                graph._vertices[v].parent = vertex_u
-                DFS_Explore(ordered_vertices, graph, v)
+            DFS_Explore(ordered_vertices, graph, u, v)
     # finish exploring the vertex
     vertex_u.color = _BLACK
     graph._clock = graph._clock + 1
@@ -64,6 +76,7 @@ def DFS_Explore(ordered_vertices: List[Vertex], graph: DirectedAcyclicGraph, u) 
 
 def DFS(graph: DirectedAcyclicGraph) -> List[Vertex]:
     ordered_vertices = []
+    exploring_vertices = {}
     vertices = graph._vertices.values()
     # color all vertices to white
     for u in vertices:
@@ -73,8 +86,9 @@ def DFS(graph: DirectedAcyclicGraph) -> List[Vertex]:
         u.parent = None
     # initialize the clock
     graph._clock = 0
+    graph.isCyclic = False
     # start exploring
     for u in graph._vertices:
         if graph._vertices[u].color == _WHITE:
-            DFS_Explore(ordered_vertices, graph, u)
+            DFS_Explore(ordered_vertices, graph, None, u)
     return ordered_vertices
